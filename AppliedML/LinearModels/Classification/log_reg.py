@@ -13,6 +13,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 ################ Logistic Regression ################
 
+# If `n_samples` is very large (e.g. ≥ 1e6), use `solver='sag'` (use StandardScaler before!)
+# If ≥ 1e9, use SGDClassifier - stochastic gradient descent
 # By default in sklearn, logistic regression is *penalized*
 # *default*: C parameter = 1, and uses L2-regularization
 # turn off regularization by setting `penalty='none'`
@@ -58,3 +60,63 @@ print(grid.best_score_)
 
 
 logreg = grid.best_estimator_
+
+
+
+
+
+
+######## Yellowbrick
+
+### Confusion Matrix
+
+from yellowbrick.classifier import ConfusionMatrix
+
+classes = cancer.target_names
+
+X_test.shape
+
+conf_matrix = ConfusionMatrix(LogisticRegression(),
+                      classes=classes,
+                      label_encoder={0: 'benign', 1: 'malignant'})
+conf_matrix.fit(X_train, y_train)
+conf_matrix.score(X_test, y_test)
+conf_matrix.poof()
+
+
+
+### ROC-AUC
+
+from yellowbrick.classifier import ROCAUC
+
+
+visualizer = ROCAUC(LogisticRegression(), classes=classes)
+
+visualizer.fit(X_train, y_train)
+visualizer.score(X_test, y_test)
+visualizer.poof()
+
+
+### Class Prediction Error
+
+from yellowbrick.classifier import ClassPredictionError
+
+visualizer = ClassPredictionError(LogisticRegression(),
+                                  classes=classes)
+
+
+visualizer.fit(X_train, y_train)
+visualizer.score(X_test, y_test)
+visualizer.poof()
+
+
+### Discrimination Threshold
+
+# Only works for binary classification
+
+from yellowbrick.classifier import DiscriminationThreshold
+
+visualizer = DiscriminationThreshold(LogisticRegression())
+
+visualizer.fit(X, y)
+visualizer.poof()

@@ -24,6 +24,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 ################ Lasso ################
 
+# NOTE: if p > n, use Lars or LassoLars instead
 # uses L1 regularization
 # does variable selection -> some coeff vals set = to 0
 # the *lower* the alpha, the more complex the model
@@ -54,7 +55,7 @@ grid.fit(X_train, y_train)
 
 print(grid.best_params_)
 print(grid.best_score_)
-print(X.shape)
+print(X_poly.shape)
 np.sum(lasso.coef_ != 0)
 
 lasso = grid.best_estimator_
