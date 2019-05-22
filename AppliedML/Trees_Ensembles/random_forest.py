@@ -99,6 +99,17 @@ rf = grid.best_estimator_
 
 ########### GRAPHICS #############
 
+# The typical way to get feature_names will be
+# X_train.columns *or* [i for i in X_train.columns]
+# Similarly, for class_names: y_train.values
+# y values are usually encoded as numerics, e.g. 0, 1,... so you can convert it
+# then use y_train_str.values (see below for conversion)
+
+# y_train_str = y_train.astype('str')
+# y_train_str[y_train_str == '0'] = 'no disease'
+# y_train_str[y_train_str == '1'] = 'disease'
+# y_train_str = y_train_str.values
+
 
 ### Feature Importance - classic method
 
