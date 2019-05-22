@@ -3,6 +3,24 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import scale
 
+###########################
+# What you probably want! #
+###########################
+
+
+X_train, X_test, y_train, y_test = train_test_split(
+    dt.drop('target', 1),
+    dt['target'],
+    test_size = .2,
+    random_state=42)
+
+
+
+
+
+#### Example using breast cancer dataset
+
+
 data = load_breast_cancer()
 X, y = data.data, data.target
 

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
@@ -32,8 +33,6 @@ from sklearn.tree import DecisionTreeClassifier, plot_tree
 tree = DecisionTreeClassifier(max_depth=2)
 tree.fit(X_train, y_train)
 
-plot_tree(tree,
-          feature_names=cancer.feature_names)
 
 
 
@@ -58,18 +57,72 @@ print(grid.best_score_)
 
 tree = grid.best_estimator_
 
+
+
+
+
+########### GRAPHICS #############
+
+# Plot the tree
+
+### Plotting the tree
+
+# New sklearn method
+
+# The typical way to get feature_names will be
+# X_train.columns *or* [i for i in X_train.columns]
+# Similarly, for class_names: y_train.values
+# y values are usually encoded as numerics, e.g. 0, 1,... so you can convert it
+# then use y_train_str.values (see below for conversion)
+
+# y_train_str = y_train.astype('str')
+# y_train_str[y_train_str == '0'] = 'no disease'
+# y_train_str[y_train_str == '1'] = 'disease'
+# y_train_str = y_train_str.values
+
+
 plot_tree(tree,
-          feature_names=cancer.feature_names)
+          feature_names=cancer.feature_names,
+          class_names=cancer.target_names,
+          rounded=True, proportion=True,
+          filled=True)
 
 
+# Old method
+
+from sklearn.tree import export_graphviz
+
+export_graphviz(tree, out_file='tree.dot',
+                feature_names = cancer.feature_names,
+                class_names = cancer.target_names,
+                rounded = True, proportion = True,
+                label='root',
+                precision = 2, filled = True)
+
+from subprocess import call
+call(['dot', '-Tpng', 'tree.dot', '-o', 'tree.png', '-Gdpi=600'])
+
+
+# Use this code to open it up in Jupyter notebook
+
+from IPython.display import Image
+Image(filename = 'tree.png')
+
+
+
+
+# Feature Importance - classic method
+
+tree.feature_importances_
+
+(pd.Series(tree.feature_importances_, index=cancer.feature_names)
+   .nlargest(5)
+   .plot(kind='barh'))
 
 
 ####### Yellowbrick
 
-
 # Feature Importance
-
-tree.feature_importances_
 
 from yellowbrick.features.importances import FeatureImportances
 
@@ -81,7 +134,6 @@ viz = FeatureImportances(tree, ax=ax,
                          relative=False) # if True, puts all on scale, max = 100
 viz.fit(X, y)
 viz.poof()
-
 
 
 
