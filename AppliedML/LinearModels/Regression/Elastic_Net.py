@@ -51,6 +51,7 @@ print(grid.best_params_)
 print(grid.best_score_)
 
 elastic = grid.best_estimator_
+
 plt.scatter(range(X_poly.shape[1]), elastic.coef_,
             c=np.sign(elastic.coef_),
             cmap="bwr_r");
