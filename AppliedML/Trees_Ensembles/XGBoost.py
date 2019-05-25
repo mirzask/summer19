@@ -5,8 +5,12 @@ from sklearn.model_selection import train_test_split
 
 ################ XGBoost ################
 
+# Boosting - iteratively improve upon model (update weights) using weak learners
+# Gradient boosting is a type of boosting method
+
 # The `xgboost` package is faster, allows for parallelization (unlike sklearn implementation)
-# The upside is that it is sklearn-friendly, e.g. works w/ pipelines, etc.
+## allows for missing values
+## The upside is that it is sklearn-friendly, e.g. works w/ pipelines, etc.
 
 
 ####################
@@ -80,10 +84,14 @@ xgb.score(X_test, y_test)
 
 from sklearn.model_selection import GridSearchCV
 
+# aggressive sub-sampling can prevent overfitting
 
-
-param_grid = {'eta': np.linspace(0, 1, num=10),
-              'gamma': [0, 0.5, 1, 2, 5]}
+param_grid = {'eta': np.linspace(0, 0.4, num=5),
+              'gamma': np.linspace(0,0.5, 6),
+              'max_depth':range(3,10,2),
+              'min_child_weight':range(1,6,2),
+              'subsample': np.linspace(0.6, 0.9, 4),
+              'colsample_bytree': np.linspace(0.6, 0.9, 4)}
 
 grid = GridSearchCV(xgb,
                     param_grid=param_grid, cv=10)
