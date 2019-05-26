@@ -24,6 +24,10 @@ cross_val_score(rf, X_train, y_train, scoring="roc_auc",
 cross_val_score(rf, X_train, y_train, scoring="brier_score_loss",
                 cv=5)
 
+cross_val_score(rf, X_train, y_train, scoring="neg_mean_squared_error",
+                cv=5)
+
+
 ########### Binary Classification ###########
 
 # Avoid using 'accuracy' (*even if balanced classes*) - https://stats.stackexchange.com/q/312780
@@ -70,13 +74,17 @@ sorted(cancer.target_names)
 
 print(classification_report(y_test, y_pred))
 
+# Specify a threshold
 
+y_pred_thresh = rf.predict_proba(X_test)[:, 1] > 0.85 # 0.85 as threshold
+
+print(classification_report(y_test, y_pred_thresh))
 
 ### Precision-Recall curve
 
 from scikitplot.metrics import plot_precision_recall
 
-rf_probas = rf.predict_proba(X_test)
+rf_probas = rf.predict_proba(X_test)[:, 1]
 plot_precision_recall(y_test, rf_probas);
 
 
@@ -101,7 +109,8 @@ viz.poof()
 
 from sklearn.metrics import average_precision_score
 
-average_precision_score(y_test, rf.predict_proba(X_test)[:, 1])
+average_precision_score(y_test, rf.predict_proba(X_test)[:, 1]) # slice to give probs of class 1
+
 
 
 
@@ -119,6 +128,10 @@ from scikitplot.metrics import plot_roc
 rf_probas = rf.predict_proba(X_test)
 plot_roc(y_test, rf_probas);
 
+
+# ROC for only class 1
+rf_probas = rf.predict_proba(X_test)[:, 1]
+plot_roc(y_test, rf_probas);
 
 
 
