@@ -27,6 +27,9 @@ cross_val_score(rf, X_train, y_train, scoring="brier_score_loss",
 cross_val_score(rf, X_train, y_train, scoring="neg_mean_squared_error",
                 cv=5)
 
+cross_validate(LogisticRegression(solver='lbfgs'),
+                        X_train, y_train, cv=10,
+                        scoring=('roc_auc', 'average_precision'))
 
 ########### Binary Classification ###########
 
