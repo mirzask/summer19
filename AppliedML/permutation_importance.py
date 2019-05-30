@@ -65,6 +65,14 @@ from rfpimp import plot_corr_heatmap
 plot_corr_heatmap(X_train, figsize=(11,11), label_fontsize=9, value_fontsize=7)
 # use this to specify subsets of importances
 # e.g. importances(rf, X_test, y_test, features=['price',['latitude','longitude']])
+# or
+# features = ['bathrooms', 'bedrooms',
+#             ['latitude', 'longitude'],
+#             ['price_to_median_beds', 'beds_baths', 'price'],
+#             ['beds_per_price','bedrooms']]
+# importances(rf, X_test, y_test, features=features)
+
+
 
 
 # Plot feature dependence
@@ -80,6 +88,10 @@ plot_dependence_heatmap(dep, figsize=(11,10))
 
 # Can drop some of the dependent features, e.g. keep `mean radius` and drop
 #`mean perimeter`, `mean area`, `mean compactness`, etc.
+
+
+
+
 
 
 
