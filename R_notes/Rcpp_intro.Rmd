@@ -1,0 +1,171 @@
+---
+title: "Rcpp Notes"
+author: "Mirza S. Khan"
+date: "7/20/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Basics
+
+C++ data types:
+
+Rcpp includes:
+
+- `*Vector`, e.g. `Rcpp::IntegerVector`, `NumericVector`
+- `*Matrix`
+- `Rcpp::clone` - make a copy, e.g. `NumericVector v(clone(v_input))`
+- Heterogenous datatypes can use `List` or `GenericVector`
+- `Rcpp::Named` to assign 'names' to values, e.g. `Rcpp::Named("beta1") = 3`
+- `Rcpp::as` (`Rcpp::wrap`) to take data from R to C++ (C++ to R)
+
+* can be `Integer`, `Numeric`, `Logical`, `Character`, `Raw`, any others?
+
+Rcpp Sugar:
+
+- TODO
+
+Use `Rcpp::*Vector`, e.g. `NumericVector`, instead of `std::vector<T>`, where T is the data type, e.g. double. Why? Rcpp vectors do not store copies. 
+
+You can use many functions that act on C++ vectors like their R counterparts, e.g. `max()`.
+
+Avoid Rcpp::*Vector or Rcpp::*Matrix for linear algebra. Use RcppArmadillo instead.
+
+# evalCpp
+
+`evalCpp()` evaluates a single C++ expression. Includes and
+dependencies can be declared.
+
+```{r}
+Rcpp::evalCpp("2 + 2")
+
+set.seed(42)
+Rcpp::evalCpp("Rcpp::rnorm(2)")
+```
+
+# cppFunction
+
+`cppFunction()` creates, compiles and links a C++ file, and creates
+an R function to access it.
+
+```{r}
+Rcpp::cppFunction('
+  double add_c(double x, double y) {
+    double value = x + y;
+    return value;
+  }
+')
+
+add_c(2,3)
+```
+
+# sourceCpp
+
+Write your code in a .cpp file and use the function call `sourceCpp("path/to/file.cpp")`.
+
+Template for the .cpp file:
+
+```
+#include <Rcpp.h>
+using namespace Rcpp;
+
+
+// [[Rcpp::export]]
+double add_c(double x, double y) {
+  double value = x + y;
+  return value;
+}
+```
+
+> **Include `// [[Rcpp::export]]` above each function you want to export/use in R.**
+
+Fun fact: You can use R code blocks in .cpp files; run after compilation.
+
+```
+#include <Rcpp.h>
+using namespace Rcpp;
+
+
+// [[Rcpp::export]]
+double add_c(double x, double y) {
+  double value = x + y;
+  return value;
+}
+
+// [[Rcpp::export]]
+int g(int n) {
+	if (n < 2) return(n);
+	return(g(n-1) + g(n-2));
+}
+
+// [[Rcpp::export]]
+double getMax(NumericVector v) {
+	return( max( v ) );
+}
+
+
+
+/*** R
+add_c(21, 21)
+*/
+
+/*** R
+sapply(0:10, g)
+*/
+```
+
+# Example: Matrix operations
+
+```
+#include <Rcpp.h>
+
+// [[Rcpp::export]]
+Rcpp::NumericVector colSums(Rcpp::NumericMatrix mat) {
+	size_t cols = mat.cols();
+	Rcpp::NumericVector res(cols);
+	for (size_t i=0; i<cols; i++) {
+		res[i] = sum(mat.column(i));
+	}
+	return(res);
+}
+```
+
+# Example sum a vector of integers
+
+```{Rcpp}
+#include <algorithm>
+#include <Rcpp.h>
+
+// [[Rcpp::export]]
+int accumulate(Rcpp::IntegerVector v){
+  return std::accumulate(v.begin(), v.end(), 0);
+}
+
+/*** R
+accumulate(1:5)
+*/
+```
+
+
+
+# Create an Rcpp package
+
+1. `Rcpp.package.skeleton()` or `RcppArmadillo.package.skeleton()`
+2. RStudio: File -> New Project -> Package menus
+
+
+# Resources
+
+Resources:
+1. http://dirk.eddelbuettel.com/papers/useR2019_rcpp_tutorial.pdf
+2. https://csgillespie.github.io/efficientR/rcpp.html
+3. http://dirk.eddelbuettel.com/code/rcpp/Rcpp-quickref.pdf
+4. https://gallery.rcpp.org/
+5. Book: Seamless R and C++ Integration with Rcpp
+6. "Unofficial" API documentation - https://github.com/coatless/rcpp-api/blob/master/rcpp-api-docs.Rmd
+7. Advanced R: Rcpp chapter - http://adv-r.had.co.nz/Rcpp.html
+8. https://youtu.be/xiqYaHa2x4s
+

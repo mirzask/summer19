@@ -1,0 +1,59 @@
+---
+title: "First set of vitals"
+author: "Mirza Khan"
+date: "July 2, 2019"
+output: html_document
+---
+
+# Setup
+
+```{r}
+library(data.table)
+library(tidyverse)
+
+example <- tibble(
+  MRN = c(rep("001", 8), rep("002", 4)),
+  date_of_birth = c(rep("1954-01-01", 8), rep("2000-07-04", 4)),
+  vital_type = rep(c('RR', 'P', 'T', 'SBP'), 3),
+  vitals = c(14, 80, 37.4, 124, 16, 100, 36, 136, 12, 67, 37.9, 104), 
+  vital_date = c("2018-01-01 17:43:00", "2018-01-01 17:43:00", "2018-01-01 17:43:00", "2018-01-01 17:50:00",
+                 rep("2018-01-02 08:20:00", 4), rep("2018-03-04 10:30:00", 3), "2018-03-04 10:42:15")
+) %>% 
+  as.data.table()
+
+example
+```
+
+Convert the columns containing the word "date" to datetime columns:
+
+```{r}
+cols <- grep("date", names(example), value = TRUE)
+
+example[, (cols) := lapply(.SD, lubridate::as_datetime), .SDcols = cols]
+example
+```
+
+# Select the first set of vitals
+
+```{r}
+first_vitals <- example[order(vital_date), .SD[1] , by = .(vital_type, MRN)]
+first_vitals
+```
+
+# Pivoting vitals from long-to-wide
+
+- Long-to-wide: use `dcast`
+- Wide-to-long: use `melt`
+
+There is a nice vignette showing how do reshape/pivot operations using `data.table` in the [DT vignettes](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reshape.html) that I reference *almost* every time.
+
+
+```{r}
+# Just MRN and first set of vitals
+dcast(first_vitals, MRN ~ vital_type, value.var = "vitals")
+
+
+# MRN, vitals datetime and first set of vitals
+dcast(first_vitals, MRN + vital_date ~ vital_type, value.var = "vitals")
+```
+

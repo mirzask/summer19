@@ -1,0 +1,108 @@
+---
+title: "Reticulate"
+author: "Mirza S. Khan"
+date: "7/11/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning=FALSE,
+                      message = FALSE)
+```
+
+## Resources
+
+- [useR 2019 tutorial](https://3mmarand.github.io/useR2019_tutorial/)
+  - Features an awesome example of using R and Python [here](https://3mmarand.github.io/useR2019_tutorial/music_ml/Classifiying_music.html)
+  
+## Setup
+
+```{r}
+library(reticulate)
+
+# Which Python is it inclined to work with?
+py_config()
+
+# Specify which flavor of Python
+use_python("/Users/asnasiddiqui/miniconda3/bin/python", required = T)
+
+# Confirm right Python is selected
+Sys.which("python")
+
+py_discover_config()
+```
+
+The **4** ways to use Python with `reticulate`:
+
+1. `repl_python()`
+2. In Rmd docs, e.g. python chunks
+2. Source Python scripts
+3. Import Python modules
+
+> Access the things made in Python session from R console/chunk using `py$<thing>`
+> The inverse of this is to acces R objects in a Python console/chunk using `r.<thing>`
+
+## REPL
+
+You can use Python in the RStudio console using `repl_python()`. Exit out by pressing the 'Esc' key or by typing `exit` in the console.
+
+```{r}
+repl_python()
+```
+
+## Python Chunks
+
+```{python}
+import numpy as np
+
+x = np.array([1,2,3])
+x*2
+```
+
+More recently, we are able to carry the variables forward to subsequent chunks. For example, the variable $x$ is available in the next chunk for computation.
+
+```{python}
+x*3
+
+x.max()
+```
+
+The array we made in python, "x", is also available in our R session using `py$x`.
+
+```{r}
+py$x * 2
+
+min(py$x)
+
+# Make available as 'x' in R environment
+x <- py$x
+```
+
+This awesomeness that is `reticulate` also allows us to use functions and methods from Python in the R environment. For example, use numpy to calculate the max of the array.
+
+```{r}
+py$np$max(py$x)
+```
+
+
+## Imports Example
+
+```{r}
+library(tidyverse)
+
+boston <- MASS::Boston
+```
+
+```{python}
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+r.boston.shape
+r.boston.head()
+type(r.boston) # pandas DF
+```
+
+
+

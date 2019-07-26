@@ -1,0 +1,129 @@
+---
+title: "test"
+author: "Mirza Khan"
+date: "November 30, 2018"
+output: html_document
+---
+
+# Converting date and datetime columns in `data.table`
+
+`data.table` does not allow specification of date and datetime columns on read, i.e. with `fread`. Thus, you need to convert these columns to the correct format after the initial read. Below is some code to convert these columns using three different packages: `lubridate`, `fasttime` and `anytime`. Base R also has the `asPOSIXct` function as well.
+
+> tl;dr: use `anytime` and `lubridate` because `fasttime` fails at processing date/datetime before the "epoch" of Jan 1, 1970.
+> Guessing the correct datetime format is costly, so when dealing with a large amount of data, might be more efficient to specify the datetime format ahead of time.
+
+
+```{r}
+library(data.table)
+library(tidyverse)
+
+example <- tibble(
+  date_of_birth = (rep("1954-01-01", 4)),
+  vital_type = c('RR', 'P', 'T', 'SBP'),
+  vitals = c(14, 80, 35.4, 124), 
+  vital_date = c("2018-01-01 17:43:00", "2018-01-01 17:43:00", "2018-01-01 17:43:00", "2018-01-01 17:50:00")
+) %>% 
+  as.data.table()
+
+example
+```
+
+
+## Select only column names containing the term "date"
+
+When selecting multiple columns, it is often easy to use a regular expression to do so. In this example, I want to modify all of the columns containing the word "date."
+
+There are several packages that allow for pattern matching using regular expressions. I often resort to using the `stringr` package. Base R also has several methods that do the same thing. There is an amazing comparison table of `stringr` and base R functions in the [stringr documentation](https://stringr.tidyverse.org/articles/from-base.html) written by Sara Stoudt that is worth referencing.
+
+```{r}
+#using `grep`
+grep("date", names(example), value = TRUE)
+
+#using `stringr`
+str_subset(names(example), "date")
+```
+
+> `data.table` also has some neat pattern matching functionality using `%like%`, `%chin%`, and `%in%`.
+
+We can now use our regular expression to select the columns of interest as shown below:
+
+```{r}
+# Method 1
+example[, .SD, .SDcols = names(example) %like% "date"]
+
+
+
+# Method 2
+cols <- grep("date", names(example), value = TRUE)
+
+#2a
+example[, ..cols]
+
+#2b
+example[, cols, with = FALSE]
+```
+
+
+## Formatting date-time columns
+
+
+### lubridate
+
+```{r}
+# Simple example - Convert to date time
+example[, .(lubridate::as_datetime(vital_date))]
+example[, .(lubridate::ymd_hms(vital_date))] # using ymd_hms, should be faster to specify format
+
+example[, .(lubridate::ymd(date_of_birth))]
+```
+
+```{r}
+cols <- grep("date", names(example), value = TRUE)
+
+example[, (cols) := lapply(.SD, lubridate::as_datetime), .SDcols = cols]
+example
+```
+
+### anytime
+
+```{r}
+example[, .(anytime::anytime(vital_date))]
+```
+
+```{r}
+cols <- grep("date", names(example), value = TRUE)
+
+example[, (cols) := lapply(.SD, anytime::anytime), .SDcols = cols]
+example
+```
+
+
+
+### fasttime
+
+- Avoid if dealing with dates _before_ Jan 1, 1970
+
+```{r}
+# Convert to date time
+example[, .(fasttime::fastPOSIXct(vital_date))]
+```
+
+```{r}
+cols <- grep("date", names(example), value = TRUE)
+
+example[, (cols) := lapply(.SD, fasttime::fastPOSIXct), .SDcols = cols]
+example
+```
+
+### fasttime failure
+
+> Does `fasttime` not work for dates before the "epoch", i.e. 1970-01-01?
+
+```{r}
+fasttime::fastPOSIXct("1969-01-02") # gives NA
+
+as.POSIXct("1969-01-02")
+lubridate::as_date("1969-01-02")
+anytime::anytime("1969-01-02")
+```
+

@@ -1,0 +1,84 @@
+---
+title: "Rcpp Regression"
+author: "Mirza S. Khan"
+date: "7/20/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Linear Regression
+
+## FastLM
+
+```
+// [[Rcpp::depends(RcppArmadillo)]]
+#include <RcppArmadillo.h>
+
+// [[Rcpp::export]]
+Rcpp::List fastLm(const arma::mat& X, const arma::colvec& y) {
+	int n = X.n_rows, k = X.n_cols;
+
+	arma::colvec coef = arma::solve(X, y);
+	arma::colvec resid = y - X*coef;
+
+
+	double sig2 = arma::as_scalar(arma::trans(resid)*resid/(n-k));
+	arma::colvec sterr = arma::sqrt(sig2 * arma::diagvec(arma::pinv(arma::trans(X)*X)));
+
+	return Rcpp::List::create(Rcpp::Named(îcoefficientsî) = coef, Rcpp::Named(îstderrî) = sterr, Rcpp::Named(îdf.residualî) = n - k );
+}
+```
+
+## RcppMLPACK
+
+```
+// [[Rcpp::depends(RcppMLPACK)]]
+// [[Rcpp::plugins(openmp)]]
+#include <RcppMLPACK.h> // MLPACK, Rcpp and RcppArmadillo
+
+// particular algorithm used here
+#include <mlpack/methods/linear_regression/linear_regression.hpp>
+
+// [[Rcpp::export]]
+arma::vec linearRegression(arma::mat& matX, arma::vec& vecY, const double lambda = 0.0, const bool intercept = true) {
+	matX = matX.t();
+	mlpack::regression::LinearRegression lr(matX, vecY.t(), lambda, intercept);
+	arma::rowvec fittedValues(vecY.n_elem);
+	lr.Predict(matX, fittedValues);
+	return fittedValues.t();
+}
+```
+
+# Logistic Regression
+
+```
+#include <RcppMLPACK.h> // MLPACK, Rcpp and RcppArmadillo
+#include <mlpack/methods/logistic_regression/logistic_regression.hpp> // algo use here
+
+// [[Rcpp::export]]
+Rcpp::List logisticRegression(const arma::mat& train, const arma::irowvec& labels, const Rcpp::Nullable<Rcpp::NumericMatrix>& test = R_NilValue) {
+
+	// MLPACK wants Row<size_t> which is an unsigned representation that R does not have
+	arma::Row<size_t> labelsur, resultsur;
+	// TODO: check that all values are non-negative
+	labelsur = arma::conv_to<arma::Row<size_t>>::from(labels);
+	// Initialize with the default arguments. TODO: support more arguments>
+	mlpack::regression::LogisticRegression<> lrc(train, labelsur);
+	arma::rowvec parameters = lrc.Parameters();
+
+	Rcpp::List return_val;
+	if (test.isNotNull()) {
+		arma::mat test2 = Rcpp::as<arma::mat>(test);
+		lrc.Classify(test2, resultsur);
+		arma::vec results = arma::conv_to<arma::vec>::from(resultsur);
+		return_val = Rcpp::List::create(Rcpp::Named(îparametersî) = parameters, Rcpp::Named(îresultsî) = results);
+	} else {
+		return_val = Rcpp::List::create(Rcpp::Named(îparametersî) = parameters);
+	}
+	return return_val;
+}
+```
+
