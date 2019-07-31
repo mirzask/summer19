@@ -43,7 +43,7 @@ grep("date", names(example), value = TRUE)
 str_subset(names(example), "date")
 ```
 
-> `data.table` also has some neat pattern matching functionality using `%like%`, `%chin%`, and `%in%`.
+> `data.table` also has some neat pattern matching functionality using `patterns()`, `%like%`, `%chin%`, and `%in%`.
 
 We can now use our regular expression to select the columns of interest as shown below:
 
