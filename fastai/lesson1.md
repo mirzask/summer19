@@ -1,3 +1,15 @@
+# Check for fastai updates
+
+```bash
+git remote update
+git status -uno
+
+# If updates, just pull 'em
+git pull
+```
+
+# Setup stuff
+
 Because I'm using this on the cluster, I will need to first activate the fastai virtual environment that I set up using the following code:
 
 ```
@@ -42,6 +54,7 @@ path.parent
   - `ImageDataBunch.from_folder`
   - `ImageDataBunch.from_csv` - csv should contain 'name' (file path) and 'label', e.g. 0/1, columns. (Default name = labels.csv)
   - `ImageDataBunch.from_lists` - where labels are available in a list/array
+  - `ImageDataBunch.single_from_classes` - create a data bunch from single image at a time; use same parameters that were used to create the model.
   - Custom function using `ImageDataBunch.from_name_func` where you specify `label_func = lambda x: ...`
   - the `size = 224` (or some other number) needs to be specified b/c all images need to be of the same shape and size
   - Has a property called `c`, which can be thought of as the number of classes for classification problems. From the example below, it would be `data.c`
@@ -59,6 +72,13 @@ pat = r'/([^/]+)_\d+.jpg$'
 
 data = ImageDataBunch.from_name_re(path_img, fnames, pat, ds_tfms=get_transforms(), size=224, bs=bs
                                   ).normalize(imagenet_stats)
+
+
+# Alternative - from folder where NOT already in train, validate, test folders
+# i.e. images all in one folder w/o specifying train/validate/test
+np.random.seed(42)
+data = ImageDataBunch.from_folder(path, train=".", valid_pct=0.2,
+        ds_tfms=get_transforms(), size=224, num_workers=4).normalize(imagenet_stats)
 ```
 
 From the Lession 1 notes, below are the details of the arguments for the `ImageDataBunch` function:
