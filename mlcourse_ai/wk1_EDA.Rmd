@@ -1,0 +1,166 @@
+---
+title: "Week 1"
+author: "Mirza S. Khan"
+date: "9/3/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(data.table)
+```
+
+# Setup Reticulate
+
+```{r}
+library(reticulate)
+
+# Which Python is it inclined to work with?
+#py_config()
+
+# Specify which flavor of Python
+use_python("/Users/asnasiddiqui/miniconda3/bin/python", required = T)
+```
+
+
+# Load the data
+
+```{r}
+data <- vroom::vroom("data/athlete_events.csv")
+setDT(data)
+```
+
+# Q1
+
+**How old were the youngest male and female participants of the 1992 Olympics?**
+
+```{r}
+data[Year == 1992, .(min_age = min(Age, na.rm = T)), by = Sex]
+
+#    Sex min_age
+# 1:   M      11
+# 2:   F      12
+```
+
+# Q2
+
+**What was the percentage of male basketball players among all the male participants of the 2012 Olympics? Round the answer to the first decimal.**
+
+```{r}
+# Number of male bball players in 2012
+data[Year == 2012 & Sex == "M" & Sport == "Basketball", uniqueN(Name)] #144
+
+# Total number of male participants in 2012 olympics
+data[Year == 2012 & Sex == "M", uniqueN(Name)] #5858
+
+round((144 / 5858)*100, 1) #2.5
+```
+
+**Answer:** 2.5%
+
+# Q3
+
+**What are the mean and standard deviation of height for female tennis players who participated in the 2000 Olympics? Round the answer to the first decimal.**
+
+```{r}
+round( data[Sex == "F" & Year == 2000 & Sport == "Tennis", .(mean = mean(Height, na.rm = T), sd = sd(Height, na.rm = T))] , 1)
+# mean: 171.8
+# sd: 6.5
+```
+
+# Q4
+
+**Find a sportsman who participated in the 2006 Olympics, with the highest weight among other participants of the same Olympics. What sport did he or she do?**
+
+```{r}
+data[Year == 2006,][order(Weight, decreasing = T)] %>% 
+  dplyr::slice(1) %>% 
+  select(Sport) # Skeleton
+```
+
+# Q5
+
+**How many times did John Aalberg participate in the Olympics held in different years?**
+
+```{r}
+data[Name == "John Aalberg", .(unique(Games))]
+#             V1
+# 1: 1992 Winter
+# 2: 1994 Winter
+
+data[Name == "John Aalberg", uniqueN(Games)]
+# 2
+```
+
+**Answer:** 2 times
+
+# Q6
+
+**How many gold medals in tennis did sportspeople from the Switzerland team win at the 2008 Olympics? Count every medal from every sportsperson.**
+
+```{r}
+data[Team == "Switzerland" & Year == 2008, sum(Medal == "Gold", na.rm = T)] #3
+```
+
+```{r}
+data %>% 
+  filter(Team == "Switzerland" & Year == 2008 & Medal == "Gold") %>% 
+  as_tibble()
+```
+
+# Q7
+
+**Is it true that Spain won fewer medals than Italy at the 2016 Olympics? Do not consider NaN values in Medal column.**
+
+```{r}
+# Number of medals Spain won in '16
+data[Team == "Spain" & Year == 2016, sum(!is.na(Medal))]
+# 43
+
+# Number of medals Italy won in '16
+data[Team == "Italy" & Year == 2016, sum(!is.na(Medal))]
+# 70
+```
+
+**Answer:** True, Spain won *fewer* medals than Italy inthe 2016 Olympics (43 medals for Spain, 70 total medals for Italy)
+
+# Q8
+
+**What age category did the fewest and the most participants of the 2008 Olympics belong to?**
+
+```{r}
+table( data[Year == 2008, cut(Age, breaks = c(15, 25, 35, 45, 55))] )
+
+# (15,25] (25,35] (35,45] (45,55] 
+#    7275    5504     623      91 
+```
+
+# Q9
+
+**Is it true that there were Summer Olympics held in Atlanta? Is it true that there were Winter Olympics held in Squaw Valley?**
+
+```{r}
+data[Season == "Summer" & City == "Atlanta", .(unique(Year))]
+# 1996
+
+data[Season == "Winter" & City == "Squaw Valley", .(unique(Year))]
+# 1960
+```
+
+**Answer:** True, True
+
+# Q10
+
+**What is the absolute difference between the number of unique sports at the 1986 Olympics and 2002 Olympics?**
+
+```{r}
+abs( data[Year == 1986, uniqueN(Sport)] - data[Year == 2002, uniqueN(Sport)] )
+# 15
+```
+
+
+
+
+
+
