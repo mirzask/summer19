@@ -1,0 +1,30 @@
+---
+title: "03_Preprocessing"
+author: "Mirza S. Khan"
+date: "9/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+library(AppliedPredictiveModeling)
+data(segmentationOriginal)
+segData <- subset(segmentationOriginal, Case == "Train")
+```
+
+```{r}
+segData <- segData %>% 
+  select(-contains("Status"))
+
+# select only numeric columns
+select_if(segData, is.numeric)
+
+# only numeric columns w/ data.table
+segData[, lapply(segData, is.numeric) == TRUE]
+```
+
+
