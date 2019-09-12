@@ -51,10 +51,12 @@ results.params
 
 ####### with Pipelines ########
 
+### `make_pipeline` ###
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
-pipe = make_pipeline(StandardScaler(), KNeighborsClassifier())
+pipe = make_pipeline(StandardScaler(), KNeighborsClassifier(n_jobs=-1))
 
 param_grid = {'kneighborsclassifier__n_neighbors':  np.arange(1, 15, 2)}
 
@@ -64,3 +66,18 @@ grid = GridSearchCV(pipe, param_grid, cv=10)
 grid.fit(X_train, y_train)
 print(grid.best_params_)
 print(grid.score(X_test, y_test))
+
+### `Pipeline` ###
+
+from sklearn.pipeline import Pipeline
+
+knn_pipe = Pipeline([('scaler', StandardScaler()), ('knn', KNeighborsClassifier(n_jobs=-1))])
+
+knn_params = {'knn__n_neighbors': range(1, 10)}
+
+knn_grid = GridSearchCV(knn_pipe, knn_params, cv=5, n_jobs=-1, verbose=True)
+
+knn_grid.fit(X_train, y_train)
+
+print(knn_grid.best_params_)
+print(knn_grid.best_score_)

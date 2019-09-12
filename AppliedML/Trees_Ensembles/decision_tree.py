@@ -6,6 +6,16 @@ from sklearn.model_selection import train_test_split
 
 ################ Decision Trees ################
 
+# The main parameters of the `sklearn.tree.DecisionTreeClassifier` class are:
+    #1. `max_depth` – the maximum depth of the tree;
+    #2. `max_features` - the maximum number of features with which to search for the best partition (this is necessary with a large number of features because it would be "expensive" to search for partitions for all features);
+    #3. `min_samples_leaf` – the minimum number of samples in a leaf. This parameter prevents creating trees where any leaf would have only a few members.
+
+#The parameters of the tree need to be set depending on input data, and it is usually done by 
+# means of cross-validation.
+
+#### How to optimize? ####
+
 # Try to minimize "impurity"
 # Classification: Gini-index (default) vs Cross-entropy
 # Regression: MSE vs MAE
